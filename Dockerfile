@@ -8,7 +8,10 @@ RUN apt-get update && apt-get install -y supervisor gettext && rm -rf /var/lib/a
 # install nss-wrapper from unstable
 ADD apt/unstable.pref /etc/apt/preferences.d/unstable.pref
 ADD apt/unstable.list /etc/apt/sources.list.d/unstable.list
-RUN apt-get update && apt-get install -y -t unstable libnss-wrapper
+RUN apt-get update && apt-get install -y -t unstable libnss-wrapper \ 
+					&& rm -rf /var/lib/apt/lists/* \
+					&& rm -rf /etc/apt/sources.list.d/unstable.list \
+					&& rm -rf /etc/apt/preferences.d/unstable.pref
 
 # Change data directory
 RUN sed -i '/^datadir*/ s|/var/lib/mysql|/volume/mysql_data|' /etc/mysql/my.cnf
