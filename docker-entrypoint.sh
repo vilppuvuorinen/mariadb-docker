@@ -10,9 +10,18 @@ export NSS_WRAPPER_GROUP=/etc/group
 
 printenv > /workdir/environment.sh
 
+# Create backups directory
 if [ ! -d /volume/mysql_backups ]; then
 	mkdir /volume/mysql_backups
 fi
+
+# Create data directory
+if [ ! -d /volume/mysql_data ]; then
+	mkdir /volume/mysql_data
+fi
+
+# Run variable expansions and additional configurations
+source /opt/post-configuration.sh
 
 set -eo pipefail
 shopt -s nullglob

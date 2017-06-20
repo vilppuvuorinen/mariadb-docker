@@ -26,10 +26,11 @@ RUN mkdir -p /var/log/supervisor
 VOLUME /var/lib/mysql
 WORKDIR /workdir
 
-ADD passwd.template ${WORKDIR}/passwd.template
-ADD docker-entrypoint.sh /entrypoint.sh
+COPY passwd.template ${WORKDIR}/passwd.template
+COPY docker-entrypoint.sh /entrypoint.sh
+COPY post-configuration.sh /opt/post-configuration.sh
 
-RUN mkdir -p /volume && chmod -R 777 /volume
+RUN mkdir -p /volume && chmod -R 777 /volume && chmod a+w /etc/mysql/
 RUN mkdir ${WORKDIR}/sv-child-logs/ && chmod -R 777 ${WORKDIR}
 
 USER 27
