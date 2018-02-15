@@ -1,10 +1,8 @@
 #!/bin/bash
-# Allow bash execution
 if ! [[ "$@" == "mysqld" ]]; then
+  source /workdir/nss.sh
   exec "$@"
 fi
-
-printenv > /workdir/environment.sh
 
 # Create backups directory
 if [ ! -d /volume/mysql_backups ]; then
@@ -17,7 +15,14 @@ if [ ! -d /volume/mysql_data ]; then
 fi
 
 # Run variable expansions and additional configurations
-source /opt/post-configuration.sh
+echo "Running post-configuration script"
+
+IFS='
+'
+for x in $(compgen -A variable | grep MYSQLD_); do
+	echo "Appending [mysqld] variable: ${!x}"
+	sed -i "/\[mysqld\]/a ${!x}" /etc/mysql/my.cnf
+done
 
 set -eo pipefail
 shopt -s nullglob
