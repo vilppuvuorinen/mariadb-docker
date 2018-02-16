@@ -1,5 +1,4 @@
 #!/bin/bash
-source /workdir/environment.sh
 datadir='/volume/mysql_backups/'
 while [ 1 ]
 do

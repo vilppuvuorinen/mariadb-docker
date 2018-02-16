@@ -1,35 +1,28 @@
 FROM mariadb:10.3
 
-ENV WORKDIR /workdir
+ADD . /tmp/
 
-# install supervisord
-RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/*
-
-# Change data directory
-RUN sed -i '/^datadir*/ s|/var/lib/mysql|/volume/mysql_data|' /etc/mysql/my.cnf
-
-# add backups
-COPY backup.sh ${WORKDIR}/backup.sh
-
-# copy supervisord config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-RUN mkdir -p /var/log/supervisor
+RUN mkdir -p /workdir/sv-child-logs && \
+  mkdir -p /volume && \
+  apt-get update && \
+  apt-get install -y gettext supervisor && \
+  cp /tmp/unstable.list /etc/apt/sources.list.d/ && \
+  apt-get update && \
+  apt-get install -y -t unstable libnss-wrapper && \
+  cp /tmp/passwd.template /opt/ && \
+  cat /tmp/nss.sh >> /etc/bash.bashrc && \
+  cp /tmp/nss.sh /workdir/ && \
+  mv /tmp/entrypoint.sh /workdir/entrypoint.sh && \
+  cp /tmp/backup.sh /workdir/ && \
+  cp /tmp/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
+  sed -i '/^datadir*/ s|/var/lib/mysql|/volume/mysql_data|' /etc/mysql/my.cnf && \
+  chmod -R 777 /workdir /volume && \
+  chmod a+w /etc/mysql && \
+  rm -rf /tmp/* /var/lib/apt/lists/* /etc/apt/sources.list.d/unstable.list
 
 WORKDIR /workdir
 
-COPY docker-entrypoint.sh /entrypoint.sh
-COPY post-configuration.sh /opt/post-configuration.sh
-
-RUN mkdir -p /volume && chmod -R 777 /volume && chmod a+w /etc/mysql/
-RUN mkdir ${WORKDIR}/sv-child-logs/ && chmod -R 777 ${WORKDIR}
-
-# Initialize NSS wrapper
-COPY debian-nss.sh /opt/debian-nss.sh
-RUN /opt/debian-nss.sh
-
-USER 27
-
-ENTRYPOINT ["/entrypoint.sh"]
-
 EXPOSE 3306
+
+ENTRYPOINT ["/workdir/entrypoint.sh"]
 CMD ["mysqld"]
