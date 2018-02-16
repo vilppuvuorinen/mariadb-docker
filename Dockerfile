@@ -1,14 +1,19 @@
 FROM mariadb:10.3
 
+ADD unstable.list /etc/apt/sources.list.d/
+
+RUN apt-get update \
+  && apt-get install -y \
+    gettext \
+    supervisor \
+  && apt-get update \
+  && apt-get install -y -t unstable libnss-wrapper \
+  && rm -rf /tmp/* /var/lib/apt/lists/*
+
 ADD . /tmp/
 
 RUN mkdir -p /workdir/sv-child-logs && \
   mkdir -p /volume && \
-  apt-get update && \
-  apt-get install -y gettext supervisor && \
-  cp /tmp/unstable.list /etc/apt/sources.list.d/ && \
-  apt-get update && \
-  apt-get install -y -t unstable libnss-wrapper && \
   cp /tmp/passwd.template /opt/ && \
   cat /tmp/nss.sh >> /etc/bash.bashrc && \
   cp /tmp/nss.sh /workdir/ && \
@@ -18,7 +23,7 @@ RUN mkdir -p /workdir/sv-child-logs && \
   sed -i '/^datadir*/ s|/var/lib/mysql|/volume/mysql_data|' /etc/mysql/my.cnf && \
   chmod -R 777 /workdir /volume && \
   chmod a+w /etc/mysql && \
-  rm -rf /tmp/* /var/lib/apt/lists/* /etc/apt/sources.list.d/unstable.list
+  rm -rf /tmp/*
 
 WORKDIR /workdir
 
